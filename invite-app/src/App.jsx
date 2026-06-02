@@ -226,7 +226,7 @@ export default function App() {
             Save The Date
           </p>
           <h1 className="font-playfair text-5xl md:text-7xl lg:text-8xl text-white mb-8 glow-text leading-tight">
-            Daniel Almeida <br className="md:hidden" />
+            Daniel <br className="md:hidden" />
             <span className="text-[#D4A574] italic font-light mx-4">&amp;</span> <br className="md:hidden" />
             Ellen Maria
           </h1>
@@ -250,7 +250,15 @@ export default function App() {
             className={`text-center space-y-8 fade-in-cascade ${elementsVisible['invitation-text'] ? 'visible' : ''}`}
           >
             <Heart className="mx-auto text-[#D4A574] mb-8" size={32} strokeWidth={1} />
-            <h2 className="font-playfair text-3xl md:text-5xl text-white">O Início do Nosso Para Sempre</h2>
+            <h2 className="font-playfair italic text-3xl md:text-5xl text-white">Para todo o sempre</h2>
+            <div className="flex flex-col items-center gap-2 mb-4">
+              <p className="font-lora text-[#D4A574] italic text-lg md:text-xl max-w-2xl mx-auto">
+                "Para que todos vejam, e saibam, e considerem, e juntamente entendam que a mão do Senhor fez isso."
+              </p>
+              <p className="font-lora text-[#D4A574] text-sm tracking-widest uppercase">
+                Isaías 41:20
+              </p>
+            </div>
             <p className="font-lora text-gray-400 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
               Com imensa alegria, convidamos você para celebrar o momento mais especial de nossas vidas. Reserve esta data para brindarmos juntos ao amor.
             </p>
