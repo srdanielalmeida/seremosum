@@ -226,7 +226,7 @@ export default function App() {
             Save The Date
           </p>
           <h1 className="font-playfair text-5xl md:text-7xl lg:text-8xl text-white mb-8 glow-text leading-tight">
-            Daniel <br className="md:hidden" />
+            Daniel Almeida <br className="md:hidden" />
             <span className="text-[#D4A574] italic font-light mx-4">&amp;</span> <br className="md:hidden" />
             Ellen Maria
           </h1>
@@ -267,7 +267,7 @@ export default function App() {
               <div className="space-y-4">
                 <Calendar className="mx-auto text-[#D4A574]" size={28} strokeWidth={1.5} />
                 <h3 className="font-playfair text-2xl text-white">A Data</h3>
-                <p className="font-lora text-gray-400">12 de Junho de 2026<br/>Sábado</p>
+                <p className="font-lora text-gray-400">31 de Outubro de 2026<br/>Sábado</p>
               </div>
               
               <div className="hidden md:block w-px h-24 bg-gradient-to-b from-transparent via-[#D4A574]/30 to-transparent mx-auto"></div>
@@ -276,7 +276,7 @@ export default function App() {
               <div className="space-y-4">
                 <Clock className="mx-auto text-[#D4A574]" size={28} strokeWidth={1.5} />
                 <h3 className="font-playfair text-2xl text-white">A Hora</h3>
-                <p className="font-lora text-gray-400">Cerimônia às 16:00<br/>Recepção a seguir</p>
+                <p className="font-lora text-gray-400">Cerimônia às 16:30<br/>Recepção a seguir</p>
               </div>
 
               <div className="hidden md:block w-px h-24 bg-gradient-to-b from-transparent via-[#D4A574]/30 to-transparent mx-auto"></div>
@@ -285,7 +285,7 @@ export default function App() {
               <div className="space-y-4">
                 <MapPin className="mx-auto text-[#D4A574]" size={28} strokeWidth={1.5} />
                 <h3 className="font-playfair text-2xl text-white">O Local</h3>
-                <p className="font-lora text-gray-400">Villa Toscana Eventos<br/>São Paulo, SP</p>
+                <p className="font-lora text-gray-400">Marabá, PA</p>
               </div>
             </div>
           </div>
