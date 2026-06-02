@@ -74,8 +74,12 @@ export default function App() {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll, { passive: true });
     
-    // Initial Load effect
-    setTimeout(() => setIsLoaded(true), 500);
+    // Preload background image
+    const img = new Image();
+    img.src = '/images/bg-optimized.webp';
+    img.onload = () => setIsLoaded(true);
+    // Fallback if image fails to load or takes too long (e.g. 1.5s)
+    const fallbackTimer = setTimeout(() => setIsLoaded(true), 1500);
 
     // Intersection Observer for fade-ins
     const observer = new IntersectionObserver((entries) => {
@@ -93,6 +97,7 @@ export default function App() {
     return () => {
       window.removeEventListener('scroll', handleScroll);
       observer.disconnect();
+      clearTimeout(fallbackTimer);
     };
   }, []);
 
@@ -207,7 +212,7 @@ export default function App() {
           style={{
             transform: `scale(${heroScale}) translateY(${heroTranslateY}px)`,
             opacity: heroOpacity,
-            backgroundImage: 'url("/images/_MG_7095-Edit-2.jpg")',
+            backgroundImage: 'url("/images/bg-optimized.webp")',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}
