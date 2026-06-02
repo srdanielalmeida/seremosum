@@ -251,14 +251,7 @@ export default function App() {
           >
             <Heart className="mx-auto text-[#D4A574] mb-8" size={32} strokeWidth={1} />
             <h2 className="font-playfair italic text-3xl md:text-5xl text-white">Para todo o sempre</h2>
-            <div className="flex flex-col items-center gap-2 mb-4">
-              <p className="font-lora text-[#D4A574] italic text-lg md:text-xl max-w-2xl mx-auto">
-                "Para que todos vejam, e saibam, e considerem, e juntamente entendam que a mão do Senhor fez isso."
-              </p>
-              <p className="font-lora text-[#D4A574] text-sm tracking-widest uppercase">
-                Isaías 41:20
-              </p>
-            </div>
+
             <p className="font-lora text-gray-400 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
               Com imensa alegria, convidamos você para celebrar o momento mais especial de nossas vidas. Reserve esta data para brindarmos juntos ao amor.
             </p>
@@ -317,9 +310,20 @@ export default function App() {
       </div>
 
       {/* FOOTER */}
-      <footer className="relative bg-[#050505] py-12 border-t border-[#D4A574]/10 text-center">
+      <footer className="bg-[#0A0A0A] py-12 text-center relative z-20">
+        <div className="w-16 h-[1px] bg-[#D4A574]/30 mx-auto mb-8"></div>
+        
+        <div className="flex flex-col items-center gap-2 mb-12 px-6">
+          <p className="font-lora text-[#D4A574] italic text-base md:text-lg max-w-2xl mx-auto opacity-80">
+            "Para que todos vejam, e saibam, e considerem, e juntamente entendam que a mão do Senhor fez isso."
+          </p>
+          <p className="font-lora text-[#D4A574] text-xs tracking-widest uppercase opacity-60">
+            Isaías 41:20
+          </p>
+        </div>
+
         <p className="font-playfair text-[#D4A574] text-xl italic mb-4">D & E</p>
-        <p className="font-lora text-gray-600 text-sm tracking-widest uppercase">
+        <p className="font-lora text-gray-500 text-sm">
           Mal podemos esperar para celebrar com você.
         </p>
       </footer>
