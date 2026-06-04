@@ -51,6 +51,33 @@ const GlobalStyles = () => (
       transform: translateY(0);
     }
     
+    .hero-bg {
+      background-image: url("/images/bg-optimized.webp");
+      background-size: cover;
+      background-position: left center;
+    }
+    @media (min-width: 768px) {
+      .hero-bg {
+        background-position: center;
+      }
+    }
+
+    .details-bg {
+      background-image: url("/images/_MG_7003-Edit-2.jpg");
+      background-size: cover;
+      background-position: top center;
+      background-attachment: fixed;
+      background-color: var(--dark-bg);
+    }
+    @media (max-width: 768px) {
+      .details-bg {
+        background-attachment: scroll;
+        background-size: 100% auto;
+        background-repeat: no-repeat;
+        background-position: top center;
+      }
+    }
+    
     html {
       scroll-behavior: smooth;
     }
@@ -65,7 +92,7 @@ export default function App() {
   const [scrollY, setScrollY] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const [audioPlaying, setAudioPlaying] = useState(false);
-  const [audioCtx, setAudioCtx] = useState(null);
+  const audioRef = useRef(null);
   const [elementsVisible, setElementsVisible] = useState({});
   const sectionRefs = useRef([]);
 
@@ -73,7 +100,7 @@ export default function App() {
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll, { passive: true });
-    
+
     // Preload background image
     const img = new Image();
     img.src = '/images/bg-optimized.webp';
@@ -101,72 +128,77 @@ export default function App() {
     };
   }, []);
 
-  // Web Audio API: Cinematic Sound Design
-  const toggleAudio = () => {
-    if (audioPlaying && audioCtx) {
-      audioCtx.close();
-      setAudioCtx(null);
-      setAudioPlaying(false);
-      return;
-    }
+  // Tentar tocar o áudio automaticamente ao carregar a página
+  useEffect(() => {
+    let startPlay;
+    let removeInteractionListeners;
 
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    setAudioCtx(ctx);
-    setAudioPlaying(true);
+    const playAudio = () => {
+      if (audioRef.current) {
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              setAudioPlaying(true);
+            })
+            .catch((error) => {
+              console.log("Autoplay impedido pelo navegador. Aguardando interação do usuário...", error);
+              
+              // Se foi impedido, ouvimos interações na página para iniciar o som
+              startPlay = () => {
+                if (audioRef.current) {
+                  audioRef.current.play()
+                    .then(() => {
+                      setAudioPlaying(true);
+                      removeInteractionListeners();
+                    })
+                    .catch((err) => console.log("Falha ao tocar após interação:", err));
+                }
+              };
 
-    // Create a cinematic pad (E2 Sub-bass + Harmonics)
-    const rootFreq = 82.41; // E2
-    const frequencies = [rootFreq, rootFreq * 1.5, rootFreq * 2, rootFreq * 2.5, rootFreq * 3];
-    
-    frequencies.forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const filter = ctx.createBiquadFilter();
+              removeInteractionListeners = () => {
+                window.removeEventListener('click', startPlay);
+                window.removeEventListener('touchstart', startPlay);
+                window.removeEventListener('keydown', startPlay);
+              };
 
-      osc.type = i % 2 === 0 ? 'sine' : 'triangle';
-      osc.frequency.value = freq;
-
-      filter.type = 'lowpass';
-      filter.frequency.value = 400 + (i * 100);
-
-      // Slow Attack, Long Sustain Envelope
-      gain.gain.setValueAtTime(0, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.08 / frequencies.length, ctx.currentTime + 3);
-      gain.gain.linearRampToValueAtTime(0.04 / frequencies.length, ctx.currentTime + 10);
-      
-      // Loop forever (or until closed)
-      
-      osc.connect(filter);
-      filter.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-    });
-
-    // Add a random "sparkle" (harp glissando simulation) every few seconds
-    setInterval(() => {
-      if (ctx.state !== 'closed') {
-        const sparkleOsc = ctx.createOscillator();
-        const sparkleGain = ctx.createGain();
-        sparkleOsc.type = 'sine';
-        sparkleOsc.frequency.setValueAtTime(880, ctx.currentTime); // A5
-        sparkleOsc.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + 1); // Up to A6
-        
-        sparkleGain.gain.setValueAtTime(0, ctx.currentTime);
-        sparkleGain.gain.linearRampToValueAtTime(0.02, ctx.currentTime + 0.5);
-        sparkleGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 2);
-        
-        sparkleOsc.connect(sparkleGain);
-        sparkleGain.connect(ctx.destination);
-        sparkleOsc.start();
-        sparkleOsc.stop(ctx.currentTime + 2);
+              window.addEventListener('click', startPlay);
+              window.addEventListener('touchstart', startPlay);
+              window.addEventListener('keydown', startPlay);
+            });
+        }
       }
-    }, 12000);
+    };
+
+    // Tenta tocar imediatamente após a renderização
+    playAudio();
+
+    return () => {
+      if (removeInteractionListeners) {
+        removeInteractionListeners();
+      }
+    };
+  }, []);
+
+  // Áudio Background
+  const toggleAudio = () => {
+    if (!audioRef.current) return;
+
+    if (audioPlaying) {
+      audioRef.current.pause();
+      setAudioPlaying(false);
+    } else {
+      audioRef.current.play();
+      setAudioPlaying(true);
+    }
   };
 
   // Parallax calculations
   const heroScale = 1 + (scrollY * 0.0005);
   const heroOpacity = Math.max(0, 1 - (scrollY * 0.002));
   const heroTranslateY = scrollY * 0.4;
+  
+  const detailsScale = 1 + (scrollY * 0.0002);
 
   const addToRefs = (el) => {
     if (el && !sectionRefs.current.includes(el)) {
@@ -177,9 +209,10 @@ export default function App() {
   return (
     <div className="relative min-h-screen bg-[#0A0A0A] overflow-hidden">
       <GlobalStyles />
-      
+      <audio ref={audioRef} src="/music/My Love.mp4" loop autoPlay />
+
       {/* Audio Control */}
-      <button 
+      <button
         onClick={toggleAudio}
         className="fixed top-6 right-6 z-50 p-3 rounded-full glass-panel text-[#D4A574] hover:text-white transition-all duration-500 hover:scale-110"
         aria-label="Toggle Audio"
@@ -190,8 +223,8 @@ export default function App() {
       {/* Floating Particles Background */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         {[...Array(15)].map((_, i) => (
-          <div 
-            key={i} 
+          <div
+            key={i}
             className="particle"
             style={{
               left: `${Math.random() * 100}%`,
@@ -207,14 +240,11 @@ export default function App() {
 
       {/* HERO SECTION (Parallax) */}
       <div className="relative h-screen w-full flex flex-col items-center justify-center overflow-hidden">
-        <div 
-          className="absolute inset-0 z-0 transition-transform duration-1000 ease-out"
+        <div
+          className="absolute inset-0 z-0 transition-transform duration-1000 ease-out hero-bg"
           style={{
             transform: `scale(${heroScale}) translateY(${heroTranslateY}px)`,
             opacity: heroOpacity,
-            backgroundImage: 'url("/images/bg-optimized.webp")',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
           }}
         >
           {/* Moody Overlay */}
@@ -231,9 +261,9 @@ export default function App() {
             Ellen Maria
           </h1>
           <p className="font-lora text-lg md:text-xl text-gray-300 italic max-w-xl mx-auto">
-            "Duas almas, uma história de amor."
+            "Aonde fores irei, onde ficares ficarei! O teu povo será o meu povo e o teu Deus será o meu Deus!."
           </p>
-          
+
           <div className="mt-16 animate-bounce opacity-50">
             <div className="w-[1px] h-16 bg-gradient-to-b from-[#D4A574] to-transparent mx-auto"></div>
           </div>
@@ -241,10 +271,19 @@ export default function App() {
       </div>
 
       {/* DETAILS SECTION */}
-      <div className="relative z-20 bg-[#0A0A0A] py-24 md:py-32">
-        <div className="max-w-4xl mx-auto px-6">
-          
-          <div 
+      <div className="relative z-20 py-24 md:py-32 overflow-hidden">
+        
+        {/* Animated Background */}
+        <div 
+          className="absolute inset-0 z-0 transition-transform duration-1000 ease-out details-bg"
+          style={{ transform: `scale(${detailsScale})` }}
+        ></div>
+
+        {/* Overlay escuro para contraste */}
+        <div className="absolute inset-0 bg-black/60 z-0"></div>
+        <div className="relative z-10 max-w-4xl mx-auto px-6">
+
+          <div
             id="invitation-text"
             ref={addToRefs}
             className={`text-center space-y-8 fade-in-cascade ${elementsVisible['invitation-text'] ? 'visible' : ''}`}
@@ -258,53 +297,63 @@ export default function App() {
           </div>
 
           {/* Date & Time Glass Panel */}
-          <div 
+          <div
             id="date-panel"
             ref={addToRefs}
-            className={`mt-24 glass-panel rounded-3xl p-8 md:p-12 fade-in-cascade ${elementsVisible['date-panel'] ? 'visible' : ''}`}
-            style={{ transitionDelay: '200ms' }}
+            className={`relative mt-24 bg-[#0A0A0A] border border-[#D4A574]/15 rounded-3xl overflow-hidden fade-in-cascade bg-cover bg-center ${elementsVisible['date-panel'] ? 'visible' : ''}`}
+            style={{ 
+              transitionDelay: '200ms',
+              backgroundImage: 'url("/images/_MG_7060-Edit.jpg")' 
+            }}
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center items-center">
-              <div className="space-y-4">
-                <Calendar className="mx-auto text-[#D4A574]" size={28} strokeWidth={1.5} />
-                <h3 className="font-playfair text-2xl text-white">A Data</h3>
-                <p className="font-lora text-gray-400">31 de Outubro de 2026<br/>Sábado</p>
-              </div>
-              
-              <div className="hidden md:block w-px h-24 bg-gradient-to-b from-transparent via-[#D4A574]/30 to-transparent mx-auto"></div>
-              <div className="md:hidden h-px w-24 bg-gradient-to-r from-transparent via-[#D4A574]/30 to-transparent mx-auto"></div>
+            {/* Overlay para legibilidade do texto */}
+            <div className="absolute inset-0 bg-black/60 z-0"></div>
 
-              <div className="space-y-4">
-                <Clock className="mx-auto text-[#D4A574]" size={28} strokeWidth={1.5} />
-                <h3 className="font-playfair text-2xl text-white">A Hora</h3>
-                <p className="font-lora text-gray-400">Cerimônia às 16:30<br/>Recepção a seguir</p>
-              </div>
+            {/* Informações */}
+            <div className="relative z-10 p-8 md:p-12">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center items-center">
+                <div className="space-y-4">
+                  <Calendar className="mx-auto text-[#D4A574]" size={28} strokeWidth={1.5} />
+                  <h3 className="font-playfair text-2xl text-white">A Data</h3>
+                  <p className="font-lora text-gray-400">31 de Outubro de 2026<br />Sábado</p>
+                </div>
 
-              <div className="hidden md:block w-px h-24 bg-gradient-to-b from-transparent via-[#D4A574]/30 to-transparent mx-auto"></div>
-              <div className="md:hidden h-px w-24 bg-gradient-to-r from-transparent via-[#D4A574]/30 to-transparent mx-auto"></div>
+                <div className="hidden md:block w-px h-24 bg-gradient-to-b from-transparent via-[#D4A574]/30 to-transparent mx-auto"></div>
+                <div className="md:hidden h-px w-24 bg-gradient-to-r from-transparent via-[#D4A574]/30 to-transparent mx-auto"></div>
 
-              <div className="space-y-4">
-                <MapPin className="mx-auto text-[#D4A574]" size={28} strokeWidth={1.5} />
-                <h3 className="font-playfair text-2xl text-white">O Local</h3>
-                <p className="font-lora text-gray-400">Marabá, PA</p>
+                <div className="space-y-4">
+                  <Clock className="mx-auto text-[#D4A574]" size={28} strokeWidth={1.5} />
+                  <h3 className="font-playfair text-2xl text-white">A Hora</h3>
+                  <p className="font-lora text-gray-400">Cerimônia às 16:00<br />Recepção a seguir</p>
+                </div>
+
+                <div className="hidden md:block w-px h-24 bg-gradient-to-b from-transparent via-[#D4A574]/30 to-transparent mx-auto"></div>
+                <div className="md:hidden h-px w-24 bg-gradient-to-r from-transparent via-[#D4A574]/30 to-transparent mx-auto"></div>
+
+                <div className="space-y-4">
+                  <MapPin className="mx-auto text-[#D4A574]" size={28} strokeWidth={1.5} />
+                  <h3 className="font-playfair text-2xl text-white">O Local</h3>
+                  <p className="font-lora text-gray-400">Marabá, PA</p>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Call to Action Actions */}
-          <div 
+          <div
             id="actions"
             ref={addToRefs}
             className={`mt-24 flex flex-col md:flex-row gap-6 justify-center items-center fade-in-cascade ${elementsVisible['actions'] ? 'visible' : ''}`}
             style={{ transitionDelay: '400ms' }}
           >
-            <button className="w-full md:w-auto px-10 py-4 bg-[#D4A574] text-[#0A0A0A] rounded-full font-lora font-semibold tracking-wider uppercase text-sm hover:bg-[#F3E0C8] hover:scale-105 transition-all duration-300 shadow-[0_0_20px_rgba(212,165,116,0.3)]">
+            <a 
+              href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Casamento+de+Daniel+e+Ellen+Maria&dates=20261031T190000Z/20261101T025900Z&details=Com+imensa+alegria%2C+convidamos+voc%C3%AA+para+celebrar+o+momento+mais+especial+de+nossas+vidas.+Cerim%C3%B4nia+%C3%A0s+16%3A00.&location=Marab%C3%A1%2C+PA"
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="w-full md:w-auto px-10 py-4 bg-[#D4A574] text-[#0A0A0A] rounded-full font-lora font-semibold tracking-wider uppercase text-sm hover:bg-[#F3E0C8] hover:scale-105 transition-all duration-300 shadow-[0_0_20px_rgba(212,165,116,0.3)] text-center block"
+            >
               Adicionar ao Calendário
-            </button>
-            <button className="w-full md:w-auto px-10 py-4 border border-[#D4A574]/50 text-[#D4A574] rounded-full font-lora font-semibold tracking-wider uppercase text-sm hover:bg-[#D4A574]/10 transition-all duration-300 flex items-center justify-center gap-2">
-              <Share2 size={18} />
-              Compartilhar
-            </button>
+            </a>
           </div>
         </div>
       </div>
@@ -312,7 +361,7 @@ export default function App() {
       {/* FOOTER */}
       <footer className="bg-[#0A0A0A] py-12 text-center relative z-20">
         <div className="w-16 h-[1px] bg-[#D4A574]/30 mx-auto mb-8"></div>
-        
+
         <div className="flex flex-col items-center gap-2 mb-12 px-6">
           <p className="font-lora text-[#D4A574] italic text-base md:text-lg max-w-2xl mx-auto opacity-80">
             "Para que todos vejam, e saibam, e considerem, e juntamente entendam que a mão do Senhor fez isso."
