@@ -324,7 +324,7 @@ export default function App() {
                 <div className="space-y-4">
                   <Clock className="mx-auto text-[#D4A574]" size={28} strokeWidth={1.5} />
                   <h3 className="font-playfair text-2xl text-white">A Hora</h3>
-                  <p className="font-lora text-gray-400">Cerimônia às 16:00<br />Recepção a seguir</p>
+                  <p className="font-lora text-gray-400">Cerimônia às 16:00</p>
                 </div>
 
                 <div className="hidden md:block w-px h-24 bg-gradient-to-b from-transparent via-[#D4A574]/30 to-transparent mx-auto"></div>
