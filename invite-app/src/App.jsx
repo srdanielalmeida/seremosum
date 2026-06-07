@@ -371,6 +371,11 @@ export default function App() {
           </p>
         </div>
 
+        <img 
+          src="/images/brasao.svg" 
+          alt="Brasão Daniel & Ellen" 
+          className="w-28 h-28 mx-auto mb-6 opacity-80 hover:opacity-100 transition-opacity duration-500"
+        />
         <p className="font-playfair text-[#D4A574] text-xl italic mb-4">D & E</p>
         <p className="font-lora text-gray-500 text-sm">
           Mal podemos esperar para celebrar com você.
