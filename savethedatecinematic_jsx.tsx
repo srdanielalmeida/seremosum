@@ -307,7 +307,7 @@ export default function App() {
       <footer className="relative bg-[#050505] py-12 border-t border-[#D4A574]/10 text-center">
         <p className="font-playfair text-[#D4A574] text-xl italic mb-4">D & E</p>
         <p className="font-lora text-gray-600 text-sm tracking-widest uppercase">
-          Mal podemos esperar para celebrar com você.
+          Esperamos com alegria para celebrar com você.
         </p>
       </footer>
     </div>

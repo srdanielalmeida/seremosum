@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Calendar, MapPin, Clock, Music, VolumeX, Heart, Share2 } from 'lucide-react';
 
 // Estilos injetados para fontes e animações customizadas
@@ -98,7 +98,16 @@ export default function App() {
 
   // Handle Scroll for Parallax and Intersection
   useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrollY(window.scrollY);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
     window.addEventListener('scroll', handleScroll, { passive: true });
 
     // Preload background image
@@ -180,19 +189,6 @@ export default function App() {
     };
   }, []);
 
-  // Áudio Background
-  const toggleAudio = () => {
-    if (!audioRef.current) return;
-
-    if (audioPlaying) {
-      audioRef.current.pause();
-      setAudioPlaying(false);
-    } else {
-      audioRef.current.play();
-      setAudioPlaying(true);
-    }
-  };
-
   // Parallax calculations
   const heroScale = 1 + (scrollY * 0.0005);
   const heroOpacity = Math.max(0, 1 - (scrollY * 0.002));
@@ -206,34 +202,29 @@ export default function App() {
     }
   };
 
+  const particles = useMemo(() => {
+    return [...Array(15)].map(() => ({
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      width: `${Math.random() * 4 + 1}px`,
+      height: `${Math.random() * 4 + 1}px`,
+      animationDelay: `${Math.random() * 5}s`,
+      animationDuration: `${Math.random() * 10 + 5}s`
+    }));
+  }, []);
+
   return (
     <div className="relative min-h-screen bg-[#0A0A0A] overflow-hidden">
       <GlobalStyles />
-      <audio ref={audioRef} src="/music/My Love.mp4" loop autoPlay />
-
-      {/* Audio Control */}
-      <button
-        onClick={toggleAudio}
-        className="fixed top-6 right-6 z-50 p-3 rounded-full glass-panel text-[#D4A574] hover:text-white transition-all duration-500 hover:scale-110"
-        aria-label="Toggle Audio"
-      >
-        {audioPlaying ? <Music size={20} className="animate-pulse" /> : <VolumeX size={20} />}
-      </button>
+      <audio ref={audioRef} src="/music/My Love.mp4" loop autoPlay preload="auto" />
 
       {/* Floating Particles Background */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        {[...Array(15)].map((_, i) => (
+        {particles.map((style, i) => (
           <div
             key={i}
             className="particle"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              width: `${Math.random() * 4 + 1}px`,
-              height: `${Math.random() * 4 + 1}px`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${Math.random() * 10 + 5}s`
-            }}
+            style={style}
           />
         ))}
       </div>
@@ -378,7 +369,7 @@ export default function App() {
         />
         <p className="font-playfair text-[#D4A574] text-xl italic mb-4">D & E</p>
         <p className="font-lora text-gray-500 text-sm">
-          Mal podemos esperar para celebrar com você.
+          Esperamos com alegria para celebrar com você.
         </p>
       </footer>
     </div>
