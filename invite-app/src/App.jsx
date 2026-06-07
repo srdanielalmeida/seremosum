@@ -96,6 +96,19 @@ export default function App() {
   const [elementsVisible, setElementsVisible] = useState({});
   const sectionRefs = useRef([]);
 
+  const toggleAudio = () => {
+    if (audioRef.current) {
+      if (audioPlaying) {
+        audioRef.current.pause();
+        setAudioPlaying(false);
+      } else {
+        audioRef.current.play()
+          .then(() => setAudioPlaying(true))
+          .catch((err) => console.log("Erro ao tocar áudio:", err));
+      }
+    }
+  };
+
   // Handle Scroll for Parallax and Intersection
   useEffect(() => {
     let ticking = false;
@@ -141,6 +154,7 @@ export default function App() {
   useEffect(() => {
     let startPlay;
     let removeInteractionListeners;
+    let isAttemptingToPlay = false;
 
     const playAudio = () => {
       if (audioRef.current) {
@@ -156,24 +170,32 @@ export default function App() {
               // Se foi impedido, ouvimos interações na página para iniciar o som
               startPlay = () => {
                 if (audioRef.current) {
+                  // Chamar play() múltiplas vezes em rápida sucessão cancela a anterior,
+                  // o que é desejado para não perder o evento confiável (ex: touchend logo após touchstart)
                   audioRef.current.play()
                     .then(() => {
                       setAudioPlaying(true);
                       removeInteractionListeners();
                     })
-                    .catch((err) => console.log("Falha ao tocar após interação:", err));
+                    .catch((err) => {
+                      console.log("Falha ao tocar após interação:", err);
+                    });
                 }
               };
 
               removeInteractionListeners = () => {
-                window.removeEventListener('click', startPlay);
-                window.removeEventListener('touchstart', startPlay);
-                window.removeEventListener('keydown', startPlay);
+                document.removeEventListener('click', startPlay);
+                document.removeEventListener('touchstart', startPlay);
+                document.removeEventListener('touchend', startPlay);
+                document.removeEventListener('scroll', startPlay);
+                document.removeEventListener('keydown', startPlay);
               };
 
-              window.addEventListener('click', startPlay);
-              window.addEventListener('touchstart', startPlay);
-              window.addEventListener('keydown', startPlay);
+              document.addEventListener('click', startPlay);
+              document.addEventListener('touchstart', startPlay, { passive: true });
+              document.addEventListener('touchend', startPlay);
+              document.addEventListener('scroll', startPlay, { passive: true });
+              document.addEventListener('keydown', startPlay);
             });
         }
       }
@@ -217,6 +239,15 @@ export default function App() {
     <div className="relative min-h-screen bg-[#0A0A0A] overflow-hidden">
       <GlobalStyles />
       <audio ref={audioRef} src="/music/My Love.mp4" loop autoPlay preload="auto" />
+
+      {/* Floating Audio Control */}
+      <button
+        onClick={toggleAudio}
+        className="fixed bottom-6 right-6 z-50 p-3 md:p-4 rounded-full bg-[#0A0A0A]/60 backdrop-blur-md border border-[#D4A574]/30 text-[#D4A574] hover:bg-[#0A0A0A]/80 transition-all duration-300 shadow-[0_0_15px_rgba(212,165,116,0.2)] hover:scale-110"
+        aria-label={audioPlaying ? "Pausar música" : "Tocar música"}
+      >
+        {audioPlaying ? <Music size={24} /> : <VolumeX size={24} />}
+      </button>
 
       {/* Floating Particles Background */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
